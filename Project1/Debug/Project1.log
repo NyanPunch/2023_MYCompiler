@@ -1,0 +1,12 @@
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(517,5): warning MSB8028: 중간 디렉터리(Debug\)에 다른 프로젝트(Project1.vcxproj)에서 공유하는 파일이 포함되어 있습니다.  이로 인해 잘못된 정리 및 다시 빌드 동작이 수행될 수 있습니다.
+  cbu2.c
+cbu2.c(1314,16): warning C4013: 'yylex'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+cbu2.y(67,50): warning C4047: '함수': 'int'의 간접 참조 수준이 'Node *'과(와) 다릅니다.
+cbu2.y(67,38): warning C4024: 'MakeRepeatStmt': 형식 및 실제 매개 변수 1의 형식이 서로 다릅니다.
+cbu2.c(1516,7): warning C4013: 'yyerror'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+  cbu2lex.c
+cbu2.l(34,33): warning C4013: 'MakeNode'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+  코드를 생성하고 있습니다...
+C:\Users\WhoLook\Desktop\DevKit\Project1\cbu2.l(57): warning C4716: 'yywrap': 값을 반환해야 합니다.
+C:\Users\WhoLook\Desktop\DevKit\Project1\cbu2.y(113): warning C4716: 'yyerror': 값을 반환해야 합니다.
+  Project1.vcxproj -> C:\Users\WhoLook\Desktop\DevKit\Project1\Debug\cbu2.exe

@@ -45,6 +45,8 @@ void	numassgn(int, int);
 void	addstmt(int, int, int);
 void	substmt(int, int, int);
 int		insertsym(char *);
+
+
 %}
 
 %token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2
@@ -64,15 +66,17 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		;
 
-expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
+expr	: 	expr ADD term		{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
-		|	expr MUL term { $$=MakeOPTree(MUL, $1, $3); }
-		|	expr DIV term { $$=MakeOPTree(DIV, $1, $3); }
 		|	term
 		;
 
+term	:	term MUL factor 	{ $$=MakeOPTree(MUL, $1, $3); }
+		|	term DIV factor		{ $$=MakeOPTree(DIV, $1, $3); }
+		|	factor
+		;
 
-term	:	ID		{ /* ID node is created in lex */ }
+factor	:	ID		{ /* ID node is created in lex */ }
 		|	NUM		{ /* NUM node is created in lex */ }
 		;
 
@@ -106,7 +110,6 @@ char *s;
 {
 	printf("%s (line %d)\n", s, lineno);
 }
-
 
 Node * MakeOPTree(int op, Node* operand1, Node* operand2)
 {

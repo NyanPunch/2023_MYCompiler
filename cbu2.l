@@ -22,14 +22,14 @@ id		{letter}({letter}|{digit})*
 %%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
-곱하기 	{return(MUL); }
-나누기 	{return(DIV); }
+곱하기 {return(MUL); }
+나누기 {return(DIV); }
 더하기	{return(ADD); }
 빼기	{return(SUB); }
-:=		{return(ASSGN); }
-;		{return(STMTEND); }
+:=	{return(ASSGN); }
+;	{return(STMTEND); }
 시작	{return(START); }
-끝		{return(END); }
+끝	{return(END); }
 {id}	{temp=insertsym(yytext); yylval=MakeNode(ID, temp); return(ID);}
 {digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }

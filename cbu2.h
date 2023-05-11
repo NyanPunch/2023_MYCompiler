@@ -56,7 +56,8 @@ extern int yydebug;
      STMTEND = 265,
      START = 266,
      END = 267,
-     ID2 = 268
+     ID2 = 268,
+     REPEAT = 269
    };
 #endif
 
