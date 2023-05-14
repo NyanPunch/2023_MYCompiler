@@ -49,7 +49,7 @@ int		insertsym(char *);
 
 %}
 
-%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2
+%token	ADD SUB MUL DIV PRINT OPT CPT ASSGN ID NUM STMTEND START END ID2
 %left	ADD SUB
 %left	MUL DIV
 
@@ -63,11 +63,12 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		| 	error STMTEND	{ errorcnt++; yyerrok;}
 		;
 
-stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+stmt	: 	ID ASSGN expr STMTEND	{$1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+		|	PRINT factor STMTEND		{$$=MakeOPTree(PRINT, $2, NULL);}
 		;
 
 expr	: 	expr ADD term		{ $$=MakeOPTree(ADD, $1, $3); }
-		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
+		|	expr SUB term		{ $$=MakeOPTree(SUB, $1, $3); }
 		|	term
 		;
 
@@ -195,6 +196,9 @@ void prtcode(int token, int val)
 		break;
 	case DIV:
 		fprintf(fp, "/\n");
+		break;
+	case PRINT:
+		fprintf(fp, "OUTNUM\n");
 		break;
 	case STMTLIST:
 	default:
