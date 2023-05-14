@@ -31,6 +31,15 @@ id		{letter}({letter}|{digit})*
 시작	{return(START); }
 끝		{return(END); }
 출력	{return(PRINT); }
+만약	{return(IF); }
+는|is	{return(IS); }
+보다	{return(THEN); }
+초과면	{return(GT); }
+미만이면	{return(LT); }
+이상이면	{return(GE); }
+이하면	{return(LE); }
+같다면	{return(EQ); }
+이다	{return(IFEND); }
 "("		{return(OPT); }
 ")"		{return(CPT); }
 {id}		{temp=insertsym(yytext); yylval=MakeNode(ID, temp); return(ID);}

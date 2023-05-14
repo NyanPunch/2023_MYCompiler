@@ -24,6 +24,11 @@ typedef struct nodeType {
 int tsymbolcnt=0;
 int errorcnt=0;
 
+int num=0;
+int cnt=0;
+int top=-1;
+int stack[1000];
+
 FILE *yyin;
 FILE *fp;
 
@@ -46,10 +51,11 @@ void	addstmt(int, int, int);
 void	substmt(int, int, int);
 int		insertsym(char *);
 
-
+void push(int);
+void pop();
 %}
 
-%token	ADD SUB MUL DIV PRINT OPT CPT ASSGN ID NUM STMTEND START END ID2
+%token	ADD SUB MUL DIV PRINT OPT CPT IF IS THEN GT LT GE LE EQ IFEND ASSGN ID NUM STMTEND START END ID2
 %left	ADD SUB
 %left	MUL DIV
 
@@ -65,7 +71,15 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 
 stmt	: 	ID ASSGN expr STMTEND	{$1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|	PRINT factor STMTEND		{$$=MakeOPTree(PRINT, $2, NULL);}
+		|	IF condition stmt_list IFEND	{$$=MakeOPTree(IF, $2, $3); }
 		;
+
+condition	:	expr IS expr THEN EQ	{$$=MakeOPTree(EQ, $1, $3); }
+			|	expr IS expr THEN GT	{$$=MakeOPTree(GT, $1, $3); }
+			|	expr IS expr THEN LT	{$$=MakeOPTree(LT, $1, $3); }
+			|	expr IS expr THEN GE	{$$=MakeOPTree(GE, $1, $3); }
+			|	expr IS expr THEN LE	{$$=MakeOPTree(LE, $1, $3); }
+			;
 
 expr	: 	expr ADD term		{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term		{ $$=MakeOPTree(SUB, $1, $3); }
@@ -197,8 +211,26 @@ void prtcode(int token, int val)
 	case DIV:
 		fprintf(fp, "/\n");
 		break;
-	case PRINT:
+	case PRINT:		//출력
 		fprintf(fp, "OUTNUM\n");
+		break;
+	case IF:			//만일
+      	fprintf(fp, "LABEL OUT%d\n", stack[top]);
+		pop();
+		break;
+	case EQ:		//같다면
+		cnt++;
+		push(cnt);
+      	fprintf(fp, "-\n");
+      	fprintf(fp, "GOTRUE OUT%d\n", stack[top]);
+		break;
+	case GT:		//초과면
+		break;
+	case LT:			//미만이면
+		break;
+	case GE:		//이상이면
+		break;
+	case LE:			//이하면
 		break;
 	case STMTLIST:
 	default:
@@ -232,3 +264,11 @@ int i;
 	fprintf(fp, "END\n");
 }
 
+void push(int num)
+{
+	stack[++top] = num;
+}
+void pop()
+{
+	top--;
+}
