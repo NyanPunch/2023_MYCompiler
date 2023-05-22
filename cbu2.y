@@ -51,11 +51,11 @@ void	addstmt(int, int, int);
 void	substmt(int, int, int);
 int		insertsym(char *);
 
-void push(int);
-void pop();
+void Push(int);
+void Pop();
 %}
 
-%token	ADD SUB MUL DIV PRINT OPT CPT IF IS THEN GT LT GE LE EQ IFEND ASSGN ID NUM STMTEND START END ID2
+%token	ADD SUB MUL DIV PRINT OPT CPT IF IS THEN GT LT GE LE EQ NE IFEND ASSGN ID NUM STMTEND START END ID2
 %left	ADD SUB
 %left	MUL DIV
 
@@ -75,6 +75,7 @@ stmt	: 	ID ASSGN expr STMTEND	{$1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		;
 
 condition	:	expr IS expr THEN EQ	{$$=MakeOPTree(EQ, $1, $3); }
+			|	expr IS expr THEN NE	{$$=MakeOPTree(NE, $1, $3); }
 			|	expr IS expr THEN GT	{$$=MakeOPTree(GT, $1, $3); }
 			|	expr IS expr THEN LT	{$$=MakeOPTree(LT, $1, $3); }
 			|	expr IS expr THEN GE	{$$=MakeOPTree(GE, $1, $3); }
@@ -216,21 +217,41 @@ void prtcode(int token, int val)
 		break;
 	case IF:			//만일
       	fprintf(fp, "LABEL OUT%d\n", stack[top]);
-		pop();
+		Pop();
 		break;
 	case EQ:		//같다면
-		cnt++;
-		push(cnt);
+		cnt++; Push(cnt);
       	fprintf(fp, "-\n");
       	fprintf(fp, "GOTRUE OUT%d\n", stack[top]);
 		break;
-	case GT:		//초과면
+	case NE:		//다르면 다르다면
+		cnt++; Push(cnt);
+      	fprintf(fp, "-\n");
+      	fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case LT:			//미만이면
+	case GT:		//초과면 크다면
+		cnt++; Push(cnt);
+		fprintf(fp, "-\n");
+		fprintf(fp, "COPY\n");
+		fprintf(fp, "GOMINUS OUT%d\n", stack[top]);
+		fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case GE:		//이상이면
+	case LT:			//미만이면 작다면
+		cnt++; Push(cnt);
+		fprintf(fp, "-\n");
+		fprintf(fp, "COPY\n");
+		fprintf(fp, "GOPLUS OUT%d\n", stack[top]);
+		fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case LE:			//이하면
+	case GE:		//이상이면 크거나같다면
+		cnt++;	Push(cnt);
+		fprintf(fp, "-\n");
+		fprintf(fp, "GOMINUS OUT%d\n", stack[top]);
+		break;
+	case LE:			//이하면 작거나같으면
+		cnt++;	Push(cnt);
+		fprintf(fp, "-\n");
+		fprintf(fp, "GOPLUS OUT%d\n", stack[top]);
 		break;
 	case STMTLIST:
 	default:
@@ -264,11 +285,11 @@ int i;
 	fprintf(fp, "END\n");
 }
 
-void push(int num)
+void Push(int num)
 {
 	stack[++top] = num;
 }
-void pop()
+void Pop()
 {
 	top--;
 }
