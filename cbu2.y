@@ -51,14 +51,19 @@ void	addstmt(int, int, int);
 void	substmt(int, int, int);
 int		insertsym(char *);
 
-void Push(int);
-void Pop();
+void Push(int num)
+{
+	stack[++top] = num;
+}
+void Pop()
+{
+	top--;
+}
 %}
 
-%token	ADD SUB MUL DIV PRINT OPT CPT IF IS THEN GT LT GE LE EQ NE IFEND ASSGN ID NUM STMTEND START END ID2
-%left	ADD SUB
-%left	MUL DIV
-
+%token	ADD SUB MUL DIV PRINT OPT CPT GT LT GE LE EQ NE ASSGN ID NUM STMTEND START END ID2
+%token	IF IS THEN IFEND ELSE AA SA MA DA INC DEC ID3
+%token	WHILE REPEAT WEND
 
 %%
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
@@ -72,6 +77,13 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{$1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|	PRINT factor STMTEND		{$$=MakeOPTree(PRINT, $2, NULL);}
 		|	IF condition stmt_list IFEND	{$$=MakeOPTree(IF, $2, $3); }
+		|	ID INC STMTEND	{$1->token = ID3; $$=MakeOPTree(INC, $1, NULL);}
+		|	ID DEC STMTEND	{$1->token = ID3; $$=MakeOPTree(DEC, $1, NULL);}
+		|	condition WHILE stmt_list WEND	{$$=MakeOPTree(WHILE, $1, $3); }
+		|	ID AA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(AA, $1, $3);}
+		|	ID SA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(SA, $1, $3);}
+		|	ID MA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(MA, $1, $3);}
+		|	ID DA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(DA, $1, $3);}
 		;
 
 condition	:	expr IS expr THEN EQ	{$$=MakeOPTree(EQ, $1, $3); }
@@ -179,6 +191,10 @@ void codegen(Node * root)
 void DFSTree(Node * n)
 {
 	if (n==NULL) return;
+	
+   	if (n->token == WHILE)	//반복문 시작위치
+		fprintf(fp, "LABEL LOOP%d\n", cnt+1);
+
 	DFSTree(n->son);
 	prtcode(n->token, n->tokenval);
 	DFSTree(n->brother);
@@ -194,6 +210,12 @@ void prtcode(int token, int val)
 	case ID2:
 		fprintf(fp, "LVALUE %s\n", symtbl[val]);
 		break;
+
+	case ID3:	//증감 및 할당연산시 사용
+		fprintf(fp, "LVALUE %s\n", symtbl[val]);
+		fprintf(fp,"RVALUE %s\n", symtbl[val]);
+		break;
+
 	case NUM:
 		fprintf(fp, "PUSH %d\n", val);
 		break;
@@ -206,52 +228,90 @@ void prtcode(int token, int val)
 	case ASSGN:
 		fprintf(fp, ":=\n");
 		break;
-	case MUL:
+	case MUL:	//곱하기
 		fprintf(fp, "*\n");
 		break;
-	case DIV:
+	case DIV:	//나누기
 		fprintf(fp, "/\n");
 		break;
-	case PRINT:		//출력
+	case PRINT:	//출력
 		fprintf(fp, "OUTNUM\n");
 		break;
-	case IF:			//만일
+	case IF:		//만일
       	fprintf(fp, "LABEL OUT%d\n", stack[top]);
 		Pop();
 		break;
-	case EQ:		//같다면
+/*
+	case IFELSE:	//또는
+		fprintf(fp, "LABEL else%d\n", stack[top]);
+		Pop();
+		break;
+*/
+	case EQ:	//같다면
 		cnt++; Push(cnt);
       	fprintf(fp, "-\n");
       	fprintf(fp, "GOTRUE OUT%d\n", stack[top]);
 		break;
-	case NE:		//다르면 다르다면
+	case NE:	//다르면 다르다면
 		cnt++; Push(cnt);
       	fprintf(fp, "-\n");
       	fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case GT:		//초과면 크다면
+	case GT:	//초과면 크다면
 		cnt++; Push(cnt);
 		fprintf(fp, "-\n");
 		fprintf(fp, "COPY\n");
 		fprintf(fp, "GOMINUS OUT%d\n", stack[top]);
 		fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case LT:			//미만이면 작다면
+	case LT:		//미만이면 작다면
 		cnt++; Push(cnt);
 		fprintf(fp, "-\n");
 		fprintf(fp, "COPY\n");
 		fprintf(fp, "GOPLUS OUT%d\n", stack[top]);
 		fprintf(fp, "GOFALSE OUT%d\n", stack[top]);
 		break;
-	case GE:		//이상이면 크거나같다면
+	case GE:	//이상이면 크거나같다면
 		cnt++;	Push(cnt);
 		fprintf(fp, "-\n");
 		fprintf(fp, "GOMINUS OUT%d\n", stack[top]);
 		break;
-	case LE:			//이하면 작거나같으면
+	case LE:		//이하면 작거나같으면
 		cnt++;	Push(cnt);
 		fprintf(fp, "-\n");
 		fprintf(fp, "GOPLUS OUT%d\n", stack[top]);
+		break;
+	case AA:	//	+=
+		fprintf(fp, "+\n");
+		fprintf(fp, ":=\n");
+		break;
+	case SA:	//	-=
+		fprintf(fp, "-\n");
+		fprintf(fp, ":=\n");
+		break;
+	case MA:	//	*=
+		fprintf(fp, "*\n");
+		fprintf(fp, ":=\n");
+		break;
+	case DA:	//	/=
+		fprintf(fp, "/\n");
+		fprintf(fp, ":=\n");
+		break;
+	
+	case INC:
+		fprintf(fp, "PUSH 1\n");
+		fprintf(fp, "+\n");
+		fprintf(fp, ":=\n");
+		break;
+	case DEC:
+		fprintf(fp, "PUSH 1\n");
+		fprintf(fp, "-\n");
+		fprintf(fp, ":=\n");
+		break;
+	case WHILE:	//~동안
+		fprintf(fp, "GOTO LOOP%d\n", stack[top]);
+		fprintf(fp, "LABEL OUT%d\n", stack[top]);
+		Pop();
 		break;
 	case STMTLIST:
 	default:
@@ -283,13 +343,4 @@ int i;
 	for(i=0; i<maxsym; i++) 
 		fprintf(fp, "DW %s\n", symtbl[i]);
 	fprintf(fp, "END\n");
-}
-
-void Push(int num)
-{
-	stack[++top] = num;
-}
-void Pop()
-{
-	top--;
 }
