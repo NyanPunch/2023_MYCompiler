@@ -24,10 +24,9 @@ typedef struct nodeType {
 int tsymbolcnt=0;
 int errorcnt=0;
 
-int num=0;
-int cnt=0;
-int top=-1;
-int stack[1000];
+int cnt=0;		//스택에 삽입할 번호
+int top=-1;		//스택의 탑표시
+int stack[1000];	//LABEL에 사용
 
 FILE *yyin;
 FILE *fp;
@@ -61,9 +60,9 @@ void Pop()
 }
 %}
 
-%token	ADD SUB MUL DIV PRINT OPT CPT GT LT GE LE EQ NE ASSGN ID NUM STMTEND START END ID2
-%token	IF IS THEN IFEND ELSE AA SA MA DA INC DEC ID3
-%token	WHILE REPEAT WEND
+%token	ADD SUB MUL DIV PRINT GT LT GE LE EQ NE ASSGN ID NUM STMTEND START END ID2
+%token	IF IS THEN IFEND AA SA MA DA INC DEC ID3
+%token	DURING DEND REPEAT
 
 %%
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
@@ -77,9 +76,9 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{$1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|	PRINT factor STMTEND		{$$=MakeOPTree(PRINT, $2, NULL);}
 		|	IF condition stmt_list IFEND	{$$=MakeOPTree(IF, $2, $3); }
+		|	condition DURING stmt_list DEND	{$$=MakeOPTree(DURING, $1, $3); }
 		|	ID INC STMTEND	{$1->token = ID3; $$=MakeOPTree(INC, $1, NULL);}
 		|	ID DEC STMTEND	{$1->token = ID3; $$=MakeOPTree(DEC, $1, NULL);}
-		|	condition WHILE stmt_list WEND	{$$=MakeOPTree(WHILE, $1, $3); }
 		|	ID AA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(AA, $1, $3);}
 		|	ID SA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(SA, $1, $3);}
 		|	ID MA expr STMTEND	{$1->token = ID3; $$=MakeOPTree(MA, $1, $3);}
@@ -192,7 +191,7 @@ void DFSTree(Node * n)
 {
 	if (n==NULL) return;
 	
-   	if (n->token == WHILE)	//반복문 시작위치
+   	if (n->token == DURING)	//반복문 시작위치
 		fprintf(fp, "LABEL LOOP%d\n", cnt+1);
 
 	DFSTree(n->son);
@@ -210,12 +209,10 @@ void prtcode(int token, int val)
 	case ID2:
 		fprintf(fp, "LVALUE %s\n", symtbl[val]);
 		break;
-
 	case ID3:	//증감 및 할당연산시 사용
 		fprintf(fp, "LVALUE %s\n", symtbl[val]);
 		fprintf(fp,"RVALUE %s\n", symtbl[val]);
 		break;
-
 	case NUM:
 		fprintf(fp, "PUSH %d\n", val);
 		break;
@@ -241,12 +238,6 @@ void prtcode(int token, int val)
       	fprintf(fp, "LABEL OUT%d\n", stack[top]);
 		Pop();
 		break;
-/*
-	case IFELSE:	//또는
-		fprintf(fp, "LABEL else%d\n", stack[top]);
-		Pop();
-		break;
-*/
 	case EQ:	//같다면
 		cnt++; Push(cnt);
       	fprintf(fp, "-\n");
@@ -298,17 +289,17 @@ void prtcode(int token, int val)
 		fprintf(fp, ":=\n");
 		break;
 	
-	case INC:
+	case INC:		//증가++
 		fprintf(fp, "PUSH 1\n");
 		fprintf(fp, "+\n");
 		fprintf(fp, ":=\n");
 		break;
-	case DEC:
+	case DEC:		//감소--
 		fprintf(fp, "PUSH 1\n");
 		fprintf(fp, "-\n");
 		fprintf(fp, ":=\n");
 		break;
-	case WHILE:	//~동안
+	case DURING:	//~동안
 		fprintf(fp, "GOTO LOOP%d\n", stack[top]);
 		fprintf(fp, "LABEL OUT%d\n", stack[top]);
 		Pop();

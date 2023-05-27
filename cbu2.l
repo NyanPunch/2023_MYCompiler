@@ -35,33 +35,29 @@ id		{letter}({letter}|{digit})*
 시작	{return(START); }
 끝		{return(END); }
 출력	{return(PRINT); }
-만약|만일	{return(IF); }
+만약에|만일	{return(IF); }
 if		{return(IF); }
 는|is	{return(IS); }
 보다|then	{return(THEN); }
-또는|else	{return(ELSE); }
 이다|ifend	{return(IFEND); }
 초과면|초과인		{return(GT); }
-크다면|크면	|큰	{return(GT); }
-">"		{return(GT); }
+크다면|크면	|큰		{return(GT); }
+">"					{return(GT); }
 미만이면|미만인	{return(LT); }
 작다면|작으면|작은	{return(LT); }
-"<"		{return(LT); }
+"<"					{return(LT); }
 이상이면|이상인	{return(GE); }
 크거나같으면|크거나같다면	{return(GE); }
-">="	{return(GE); }
-이하면|이하인	{return(LE); }
+">="				{return(GE); }
+이하면|이하인		{return(LE); }
 작거나같으면|작거나같다면	{return(LE); }
-"<="	{return(LE); }
+"<="				{return(LE); }
 같다면|같으면|같은	{return(EQ); }
-"=="	{return(EQ); }
+"=="				{return(EQ); }
 다르면|다르다면|틀리면|틀리다면 {return(NE); }
-동안	{return(WHILE); }
-반복	{return(REPEAT);}
-한다	{return(WEND);}
-"!="	{return(NE); }
-"("		{return(OPT); }
-")"		{return(CPT); }
+"!="				{return(NE); }
+동안	{return(DURING); }
+반복한다	{return(DEND);}
 "+="	{return(AA); }
 "-="	{return(SA); }
 "*="	{return(MA); }
@@ -69,7 +65,7 @@ if		{return(IF); }
 "++"	{return(INC); }
 "--"		{return(DEC);}
 {id}		{temp=insertsym(yytext); yylval=MakeNode(ID, temp); return(ID);}
-{digit}+	{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
+{digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }
 %%
 
