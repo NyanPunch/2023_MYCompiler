@@ -37,7 +37,7 @@ id		{letter}({letter}|{digit})*
 출력	{return(PRINT); }
 만약에|만일	{return(IF); }
 if		{return(IF); }
-는|is	{return(IS); }
+은|는|is	{return(IS); }
 보다|then	{return(THEN); }
 이다|ifend	{return(IFEND); }
 초과면|초과인		{return(GT); }
